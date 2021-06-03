@@ -22,7 +22,6 @@ jobs:
           ls
       - name: GitHub Commit & Push
         uses: actions-js/push@v1.2
-        if: 1==2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           
