@@ -16,14 +16,12 @@ jobs:
           rm -rf opt/openwrt
           git clone --depth=1 https://github.com/unifreq/openwrt_packit.git
           mv openwrt_packit opt/openwrt
-          ls
-          echo "--------------"
-          cd opt/openwrt
-          ls
+          
       - name: GitHub Commit & Push
         uses: actions-js/push@v1.2
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: main
           
 
 
