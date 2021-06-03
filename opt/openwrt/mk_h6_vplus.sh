@@ -255,10 +255,10 @@ fi
 [ -f $DAEMON_JSON ] && mkdir -p "etc/docker" && cp $DAEMON_JSON "etc/docker/daemon.json"
 [ -f $COREMARK ] && [ -f "etc/coremark.sh" ] && cp -f $COREMARK "etc/coremark.sh" && chmod 755 "etc/coremark.sh"
 if [ -x usr/bin/perl ];then
-	[ -f $CPUSTAT_SCRIPT ] && cp $CPUSTAT_SCRIPT usr/bin/
+	[ -f $CPUSTAT_SCRIPT ] && cp $CPUSTAT_SCRIPT usr/bin/cpustat && chmod 755 usr/bin/cpustat  
 	[ -f $GETCPU_SCRIPT ] && cp $GETCPU_SCRIPT bin/
 else
-	[ -f $CPUSTAT_SCRIPT_PY ] && cp $CPUSTAT_SCRIPT_PY usr/bin/cpustat
+	[ -f $CPUSTAT_SCRIPT_PY ] && cp $CPUSTAT_SCRIPT_PY usr/bin/cpustat && chmod 755 usr/bin/cpustat
 fi
 [ -f $TTYD ] && cp $TTYD etc/init.d/
 [ -f $FLIPPY ] && cp $FLIPPY usr/sbin/
@@ -312,7 +312,7 @@ for mod in $mod_blacklist ;do
 done
 [ -f ./etc/modules.d/usb-net-asix-ax88179 ] || echo "ax88179_178a" > ./etc/modules.d/usb-net-asix-ax88179
 if echo $KERNEL_VERSION | grep -E '*\+$' ;then
-	echo "r8152" > ./etc/modules.d/usb-net-rtl8152
+	echo "r8152_v2" > ./etc/modules.d/usb-net-rtl8152
 else
 	echo "r8152" > ./etc/modules.d/usb-net-rtl8152
 fi
