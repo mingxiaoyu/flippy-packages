@@ -1,0 +1,30 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Update form flippy
+
+on:
+
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Update files
+        run: |
+          rm -rf opt/openwrt
+          git clone --depth=1 https://github.com/unifreq/openwrt_packit.git
+          mv openwrt_packit opt/openwrt
+          ls
+          echo "--------------"
+          cd opt/openwrt
+          ls
+      - name: GitHub Commit & Push
+        uses: actions-js/push@v1.2
+        if: 1==2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          
+
+
