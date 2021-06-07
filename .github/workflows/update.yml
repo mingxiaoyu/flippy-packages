@@ -3,7 +3,7 @@
 name: Update form flippy
 
 on:
-
+  repository_dispatch:
   workflow_dispatch:
 jobs:
   build:
