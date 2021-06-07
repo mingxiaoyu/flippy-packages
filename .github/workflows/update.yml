@@ -16,6 +16,8 @@ jobs:
           rm -rf opt/openwrt
           git clone --depth=1 https://github.com/unifreq/openwrt_packit.git
           mv openwrt_packit opt/openwrt
+          rm -rf opt/openwr/.git
+          rm -rf opt/openwr/.gitignore
           
       - name: GitHub Commit & Push
         uses: actions-js/push@v1.2
