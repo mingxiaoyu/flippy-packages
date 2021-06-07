@@ -51,7 +51,6 @@ REGULATORY_DB="${PWD}/files/regulatory.db.tar.gz"
 CPUSTAT_SCRIPT="${PWD}/files/cpustat"
 CPUSTAT_SCRIPT_PY="${PWD}/files/cpustat.py"
 CPUSTAT_PATCH="${PWD}/files/luci-admin-status-index-html.patch"
-RC_BOOT_PATCH="${PWD}/files/boot-rk.patch"
 GETCPU_SCRIPT="${PWD}/files/getcpu"
 UPDATE_SCRIPT="${PWD}/files/update-beikeyun-openwrt.sh"
 KMOD="${PWD}/files/kmod"
@@ -62,7 +61,7 @@ BOOT_CMD="${PWD}/files/boot.cmd"
 BOOT_SCR="${PWD}/files/boot.scr"
 
 PWM_FAN="${PWD}/files/pwm-fan.pllllllll"
-DAEMON_JSON="${PWD}/files/daemon.json.p4"
+DAEMON_JSON="${PWD}/files/rk3328/daemon.json"
 
 TTYD="${PWD}/files/ttyd"
 FLIPPY="${PWD}/files/flippy"
@@ -74,7 +73,7 @@ SMB4_PATCH="${PWD}/files/smb4.11_enable_smb1.patch"
 SYSCTL_CUSTOM_CONF="${PWD}/files/99-custom.conf"
 
 # 20200403 add
-SND_MOD="${PWD}/files/snd-rk3328"
+SND_MOD="${PWD}/files/rk3328/snd-rk3328"
 
 # 20200709 add
 COREMARK="${PWD}/files/coremark.sh"
@@ -264,10 +263,10 @@ fi
 [ -f $DAEMON_JSON ] && mkdir -p "etc/docker" && cp $DAEMON_JSON "etc/docker/daemon.json"
 [ -f $COREMARK ] && [ -f "etc/coremark.sh" ] && cp -f $COREMARK "etc/coremark.sh" && chmod 755 "etc/coremark.sh"
 if [ -x usr/bin/perl ];then
-	[ -f $CPUSTAT_SCRIPT ] && cp $CPUSTAT_SCRIPT usr/bin/
+	[ -f $CPUSTAT_SCRIPT ] && cp $CPUSTAT_SCRIPT usr/bin/cpustat && chmod 755 usr/bin/cpustat
 	[ -f $GETCPU_SCRIPT ] && cp $GETCPU_SCRIPT bin/
 else
-	[ -f $CPUSTAT_SCRIPT_PY ] && cp $CPUSTAT_SCRIPT_PY usr/bin/cpustat
+	[ -f $CPUSTAT_SCRIPT_PY ] && cp $CPUSTAT_SCRIPT_PY usr/bin/cpustat && chmod 755 usr/bin/cpustat
 fi
 [ -f $UPDATE_SCRIPT ] && cp $UPDATE_SCRIPT usr/bin/
 [ -f $TTYD ] && cp $TTYD etc/init.d/
@@ -324,7 +323,7 @@ for mod in $mod_blacklist ;do
 done
 [ -f ./etc/modules.d/usb-net-asix-ax88179 ] || echo "ax88179_178a" > ./etc/modules.d/usb-net-asix-ax88179
 if echo $KERNEL_VERSION | grep -E '*\+$' ;then
-	echo "r8152" > ./etc/modules.d/usb-net-rtl8152
+	echo "r8152_v2" > ./etc/modules.d/usb-net-rtl8152
 else
 	echo "r8152" > ./etc/modules.d/usb-net-rtl8152
 fi
@@ -334,7 +333,6 @@ echo "r8188eu" > ./etc/modules.d/rtl8188eu
 sed -e 's/ttyAMA0/tty1/' -i ./etc/inittab
 sed -e 's/ttyS0/ttyS2/' -i ./etc/inittab
 sed -e 's/\/opt/\/etc/' -i ./etc/config/qbittorrent
-patch -p0 < "${RC_BOOT_PATCH}"
 sed -e "s/#PermitRootLogin prohibit-password/PermitRootLogin yes/" -i ./etc/ssh/sshd_config 2>/dev/null
 sss=$(date +%s)
 ddd=$((sss/86400))
