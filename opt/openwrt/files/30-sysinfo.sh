@@ -104,10 +104,14 @@ storage_info
 critical_load=$(( 1 + $(grep -c processor /proc/cpuinfo) / 2 ))
 
 # get uptime, logged in users and load in one take
-UptimeString=$(uptime | tr -d ',')
-time=$(awk -F" " '{print $3" "$4}' <<<"${UptimeString}")
-load="$(awk -F"average: " '{print $2}'<<<"${UptimeString}")"
-case ${time} in
+if [ -x /usr/bin/cpustat ];then
+    time=$(/usr/bin/cpustat -u)
+    load=$(/usr/bin/cpustat -l)
+else
+    UptimeString=$(uptime | tr -d ',')
+    time=$(awk -F" " '{print $3" "$4}' <<<"${UptimeString}")
+    load="$(awk -F"average: " '{print $2}'<<<"${UptimeString}")"
+    case ${time} in
 	1:*) # 1-2 hours
 		time=$(awk -F" " '{print $3" 小时"}' <<<"${UptimeString}")
 		;;
@@ -119,8 +123,8 @@ case ${time} in
 		time=$(awk -F" " '{print $5}' <<<"${UptimeString}")
 		time="$days "$(awk -F":" '{print $1"小时 "$2"分钟"}' <<<"${time}")
 		;;
-esac
-
+    esac
+fi
 
 # memory and swap
 mem_info=$(LC_ALL=C free -w 2>/dev/null | grep "^Mem" || LC_ALL=C free | grep "^Mem")
@@ -156,9 +160,11 @@ echo ""
 
 display "环境温度" "$cpu_tempx" "60" "0" "°C"  ""  
 if [ -x /usr/bin/cpustat ];then
-    cpu_freq=$(/usr/bin/cpustat -F)
+    cpu_freq=$(/usr/bin/cpustat -F1500)
+    echo -n "当前频率:  $cpu_freq"
+else
+    display "当前频率" "$cpu_freq" "1500" "0" " Mhz"  ""  
 fi
-display "当前频率" "$cpu_freq" "1500" "0" " Mhz"  ""  
 echo ""
 
 display "内存已用" "$memory_usage" "70" "0" "%" " of ${memory_total}MB"

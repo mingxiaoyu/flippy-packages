@@ -36,8 +36,17 @@ sub get_cpu_freq {
         open my $fh, "<", $fname;
 	usleep(50000);
 	my $freq;
-	if($f) {
-            $freq = sprintf "%d", <$fh> / 1000;
+	if($f =~ /-F(\d*)/) {
+	    my $alert_mhz = 1500;
+	    if($1 ne "") {
+		$alert_mhz = $1;
+	    }
+	    my $color = "\x1b[92m";
+            $freq = <$fh> / 1000;
+	    if($freq > $alert_mhz) {
+		$color = "\x1b[91m";
+	    }
+            $freq = sprintf "%s%d Mhz\x1b[0m", $color, $freq;
         } else {
             $freq = sprintf "%dMhz", <$fh> / 1000;
         }    
@@ -48,7 +57,7 @@ sub get_cpu_freq {
         } 
     }
 
-    if($#fnames > 0) {
+    if($#fnames > 0 && $f eq "") {
 	$freq_str = "(" . $freq_str . ")";
     }
 
@@ -106,6 +115,37 @@ sub get_arch_info {
     return "$arch_info";
 }
 
+sub get_uptime {
+    my $fh;
+    my $result;
+    open $fh, "<", "/proc/uptime" or die;
+    my $str_uptime = <$fh>;
+    if($str_uptime =~ /(\d*)/) {
+        my $day  = int($1/86400);
+        my $hour = int(($1%86400)/3600);
+	my $min  = int(($1%3600)/60);
+	my $sec  =  $1%60;
+
+	my $sday  = $day . "天 " if($day>0);
+	my $shour = $hour . "小时 " if($hour>0 || $day>0) ;
+	my $smin  = $min . "分钟 ";
+	my $ssec  = $sec . "秒";
+	$result  .= $sday . $shour . $smin . $ssec;
+    } 
+    close $fh;
+    return $result;
+}
+
+sub get_avgload {
+    my $fh;
+    my $result;
+    open $fh, "<", "/proc/loadavg" or die;
+    my $str = <$fh>;
+    $result = join(' ', (split(/\s+/, $str))[0,1,2]);
+    close $fh;
+    return $result;
+}
+
 #####   main program #####
 my $argc = scalar( @ARGV );
 if($argc == 0) {
@@ -120,6 +160,10 @@ if($argc == 0) {
     print &get_soc_temp("T"), "\n";
 } elsif($ARGV[0] eq "-f") {
     print &get_cpu_freq, "\n";
-} elsif($ARGV[0] eq "-F") {
-    print &get_cpu_freq('F'), "\n";
+} elsif($ARGV[0] =~ /-F/) {
+    print &get_cpu_freq($ARGV[0]), "\n";
+} elsif($ARGV[0] eq "-u") {
+    print &get_uptime, "\n";
+} elsif($ARGV[0] eq "-l") {
+    print &get_avgload, "\n";
 }
