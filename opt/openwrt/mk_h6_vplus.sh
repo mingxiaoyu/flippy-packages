@@ -3,12 +3,13 @@
 echo "========================= begin $0 ================="
 WORK_DIR="${PWD}/tmp"
 if [ ! -d ${WORK_DIR} ];then
-	mkdir -p ${WORK_DIR}
+    mkdir -p ${WORK_DIR}
 fi
 
 # Image sources
 ###################################################################
 source make.env
+source public_funcs
 SOC=h6
 BOARD=vplus
 SUBVER=$1
@@ -18,24 +19,16 @@ BOOT_MB=160
 ROOTFS_MB=720
 
 MODULES_TGZ=${KERNEL_PKG_HOME}/modules-${KERNEL_VERSION}.tar.gz
+check_file ${MODULES_TGZ}
 BOOT_TGZ=${KERNEL_PKG_HOME}/boot-${KERNEL_VERSION}.tar.gz
+check_file ${BOOT_TGZ}
 DTBS_TGZ=${KERNEL_PKG_HOME}/dtb-allwinner-${KERNEL_VERSION}.tar.gz
-if [ ! -f ${MODULES_TGZ} ];then
-	echo "${MODULES_TGZ} not exists!"
-	exit 1
-fi
-if [ ! -f ${BOOT_TGZ} ];then
-	echo "${BOOT_TGZ} not exists!"
-	exit 1
-fi
-if [ ! -f ${DTBS_TGZ} ];then
-	echo "${DTBS_TGZ} not exists!"
-	exit 1
-fi
+check_file ${DTBS_TGZ}
 
 # Openwrt 
 OP_ROOT_TGZ="openwrt-armvirt-64-default-rootfs.tar.gz"
 OPWRT_ROOTFS_GZ="${PWD}/${OP_ROOT_TGZ}"
+check_file ${OP_ROOT_TGZ}
 echo "Use $OPWRT_ROOTFS_GZ as openwrt rootfs!"
 
 # Target Image
@@ -113,6 +106,8 @@ OPENWRT_UPDATE="${PWD}/files/openwrt-update-allwinner"
 
 # work dir
 cd $WORK_DIR
+check_depends
+
 TEMP_DIR=$(mktemp -p $WORK_DIR)
 rm -rf $TEMP_DIR
 mkdir -p $TEMP_DIR
@@ -143,13 +138,6 @@ parted -s $TGT_DEV mkpart primary btrfs ${START}b 100% 2>/dev/null || exit 1
 parted -s $TGT_DEV print 2>/dev/null
 echo "分区完成"
 echo
-
-function wait_dev {
-    while [ ! -b $1 ];do
-        echo "wait for $1 ..."
-        sleep 1
-    done
-}
 
 # mk boot filesystem (ext4)
 echo "格式化 boot分区： ${TGT_DEV}p1 ..."
