@@ -183,12 +183,6 @@ fi
 [ -f $DAEMON_JSON ] && mkdir -p "etc/docker" && cp $DAEMON_JSON "etc/docker/daemon.json"
 [ -f $FORCE_REBOOT ] && cp $FORCE_REBOOT usr/sbin/
 [ -f $COREMARK ] && [ -f "etc/coremark.sh" ] && cp -f $COREMARK "etc/coremark.sh" && chmod 755 "etc/coremark.sh"
-if [ -x usr/bin/perl ];then
-	[ -f $CPUSTAT_SCRIPT ] && cp $CPUSTAT_SCRIPT usr/bin/cpustat && chmod 755 usr/bin/cpustat
-	[ -f $GETCPU_SCRIPT ] && cp $GETCPU_SCRIPT bin/
-else
-	[ -f $CPUSTAT_SCRIPT_PY ] && cp $CPUSTAT_SCRIPT_PY usr/bin/cpustat && chmod 755 usr/bin/cpustat
-fi
 #[ -f $TTYD ] && cp $TTYD etc/init.d/
 [ -f $FLIPPY ] && cp $FLIPPY usr/sbin/
 if [ -f $BANNER ];then
@@ -307,41 +301,7 @@ sed -e "s/option wan_mode 'false'/option wan_mode 'true'/" -i ./etc/config/docke
 mv -f ./etc/rc.d/S??dockerd ./etc/rc.d/S99dockerd 2>/dev/null
 rm -f ./etc/rc.d/S80nginx 2>/dev/null
 
-cat > ./etc/fstab <<EOF
-UUID=${ROOTFS_UUID} / btrfs compress=zstd 0 1
-LABEL=${BOOT_LABEL} /boot vfat defaults 0 2
-#tmpfs /tmp tmpfs defaults,nosuid 0 0
-EOF
-echo "/etc/fstab --->"
-cat ./etc/fstab
-
-cat > ./etc/config/fstab <<EOF
-config global
-        option anon_swap '0'
-        option auto_swap '0'
-        option anon_mount '1'
-        option auto_mount '1'
-        option delay_root '5'
-        option check_fs '0'
-
-config mount
-        option target '/overlay'
-        option uuid '${ROOTFS_UUID}'
-        option enabled '1'
-        option enabled_fsck '1'
-	option options 'compress=zstd'
-	option fstype 'btrfs'
-
-config mount
-        option target '/boot'
-        option label '${BOOT_LABEL}'
-        option enabled '1'
-        option enabled_fsck '1'
-	option fstype 'vfat'
-EOF
-
-echo "/etc/config/fstab --->"
-cat ./etc/config/fstab
+create_fstab_config
 
 [ -f ./www/DockerReadme.pdf ] && [ -f ${DOCKER_README} ] && cp -fv ${DOCKER_README} ./www/DockerReadme.pdf
 
@@ -352,24 +312,6 @@ alias brnf br_netfilter
 alias pwm pwm_meson
 alias wifi brcmfmac
 EOF
-
-if [ -f ./etc/config/turboacc ];then
-    sed -e "s/option sw_flow '1'/option sw_flow '${SW_FLOWOFFLOAD}'/" -i ./etc/config/turboacc
-    sed -e "s/option hw_flow '1'/option hw_flow '${HW_FLOWOFFLOAD}'/" -i ./etc/config/turboacc
-    sed -e "s/option sfe_flow '1'/option sfe_flow '${SFE_FLOW}'/" -i ./etc/config/turboacc
-else
-    cat > ./etc/config/turboacc <<EOF
-
-config turboacc 'config'
-        option sw_flow '${SW_FLOWOFFLOAD}'
-        option hw_flow '${HW_FLOWOFFLOAD}'
-	option sfe_flow '${SFE_FLOW}'
-        option bbr_cca '0'
-        option fullcone_nat '1'
-        option dns_caching '0'
-
-EOF
-fi
 
 echo pwm_meson > ./etc/modules.d/pwm_meson
 echo panfrost > ./etc/modules.d/panfrost
@@ -424,15 +366,14 @@ UBOOT_OVERLOAD=${UBOOT_WITHOUT_FIP}
 EOF
 fi
 
+adjust_turboacc_config
 adjust_ntfs_config
+patch_admin_status_index_html
 
 rm -f ${TGT_ROOT}/etc/bench.log
 cat >> ${TGT_ROOT}/etc/crontabs/root << EOF
 37 5 * * * /etc/coremark.sh
 EOF
-
-[ -f $CPUSTAT_PATCH ] && cd $TGT_ROOT && patch -p1 < ${CPUSTAT_PATCH}
-[ -x "${TGT_ROOT}/usr/bin/perl" ] && [ -f "${CPUSTAT_PATCH_02}" ] && cd ${TGT_ROOT} && patch -p1 < ${CPUSTAT_PATCH_02}
 
 # 创建 /etc 初始快照
 echo "创建初始快照: /etc -> /.snapshots/etc-000"
