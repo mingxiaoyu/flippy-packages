@@ -153,14 +153,6 @@ EOF
 echo "uEnv.txt --->"
 cat uEnv.txt
 
-# 5.10以后的内核，需要增加u-boot重载
-if [ $K510 -eq 1 ];then
-	cp -fv ${UBOOT_WITHOUT_FIP} u-boot.ext
-	rm -f u-boot.sd u-boot.usb
-else
-	rm -f u-boot*.bin
-fi
-
 echo "修改根文件系统相关配置 ... "
 # modify root
 cd $TGT_ROOT
@@ -241,12 +233,6 @@ fi
 
 [ -f ${SYSCTL_CUSTOM_CONF} ] && cp ${SYSCTL_CUSTOM_CONF} etc/sysctl.d/
 [ -f ${GET_RANDOM_MAC} ] && cp ${GET_RANDOM_MAC} usr/bin/
-[ -d boot ] || mkdir -p boot
-[ -d overlay ] || mkdir -p overlay
-[ -d rom ] || mkdir -p rom
-[ -d sys ] || mkdir -p sys
-[ -d proc ] || mkdir -p proc
-[ -d run ] || mkdir -p run
 sed -e 's/ttyAMA0/ttyAML0/' -i ./etc/inittab
 sed -e 's/ttyS0/tty0/' -i ./etc/inittab
 sed -e 's/\/opt/\/etc/' -i ./etc/config/qbittorrent
@@ -441,11 +427,6 @@ if [ $K510 -eq 1 ];then
 UBOOT_OVERLOAD=${UBOOT_WITHOUT_FIP}
 EOF
 fi
-
-cd $TGT_ROOT/lib/modules/${KERNEL_VERSION}/
-rm -f build source
-find . -name '*.ko' -exec ln -sf {} . \;
-rm -f ntfs.ko
 
 cd $TGT_ROOT/sbin
 if [ ! -x kmod ];then
