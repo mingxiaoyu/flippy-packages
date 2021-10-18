@@ -204,9 +204,6 @@ fi
 if [ -f etc/config/cpufreq ];then
     sed -e "s/ondemand/schedutil/" -i etc/config/cpufreq
 fi
-if [ -f usr/bin/xray-plugin ] && [ -f usr/bin/v2ray-plugin ];then
-   ( cd usr/bin && rm -f v2ray-plugin && ln -s xray-plugin v2ray-plugin )
-fi
 
 adjust_docker_config
 adjust_openssl_config
@@ -216,6 +213,7 @@ adjust_samba_config
 adjust_nfs_config "mmcblk2p4"
 adjust_openssh_config
 adjust_openclash_config
+use_xrayplug_replace_v2rayplug
 
 # for collectd
 #[ -f ./etc/ppp/options-opkg ] && mv ./etc/ppp/options-opkg ./etc/ppp/options
@@ -270,12 +268,6 @@ echo "r8188eu" > ./etc/modules.d/rtl8188eu
 adjust_turboacc_config
 adjust_ntfs_config
 patch_admin_status_index_html
-
-rm -f ${TGT_ROOT}/etc/bench.log
-cat >> ${TGT_ROOT}/etc/crontabs/root << EOF
-37 5 * * * /etc/coremark.sh
-EOF
-
 write_release_info
 write_banner
 # 创建 /etc 初始快照
