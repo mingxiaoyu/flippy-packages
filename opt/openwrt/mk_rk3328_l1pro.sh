@@ -147,45 +147,8 @@ extract_glibc_programs
 
 cd $TGT_ROOT
 
-if [ -f "$PWM_FAN" ];then
-	cp $PWM_FAN ./usr/bin
-	echo "pwm_fan" > ./etc/modules.d/pwm_fan
-	cat > "./etc/rc.local" <<EOF
-# Put your custom commands here that should be executed once
-# the system init finished. By default this file does nothing.
-/usr/bin/pwm-fan.pl &
-exit 0
-EOF
-fi
-
-if [ -f "$FIRSTRUN_SCRIPT" ];then
-	chmod 755 "$FIRSTRUN_SCRIPT"
- 	cp "$FIRSTRUN_SCRIPT" ./usr/bin/ 
-	mv ./etc/rc.local ./etc/rc.local.orig
-	cat > ./etc/part_size <<EOF
-${SKIP_MB}	${BOOT_MB}	${ROOTFS_MB}
-EOF
-
-	cat > "./etc/rc.local" <<EOF
-# Put your custom commands here that should be executed once
-# the system init finished. By default this file does nothing.
-/usr/bin/pwm-fan.pl &
-/usr/bin/mk_newpart.sh 1>/dev/null 2>&1
-exit 0
-EOF
-fi
-
 if [ -f etc/config/cpufreq ];then
     sed -e "s/ondemand/schedutil/" -i etc/config/cpufreq
-fi
-if [ -f $SYSFIXTIME_PATCH ];then
-    patch -p1 < $SYSFIXTIME_PATCH
-fi
-if [ -f $SSL_CNF_PATCH ];then
-    patch -p1 < $SSL_CNF_PATCH
-fi
-if [ -f etc/init.d/dockerd ] && [ -f $DOCKERD_PATCH ];then
-    patch -p1 < $DOCKERD_PATCH
 fi
 if [ -f usr/bin/xray-plugin ] && [ -f usr/bin/v2ray-plugin ];then
    ( cd usr/bin && rm -f v2ray-plugin && ln -s xray-plugin v2ray-plugin )
@@ -207,6 +170,8 @@ fi
 echo "r8188eu" > ./etc/modules.d/rtl8188eu
 echo "dw_wdt" > ./etc/modules.d/watchdog
 
+adjust_docker_config
+adjust_openssl_config
 adjust_qbittorrent_config
 adjust_getty_config
 adjust_samba_config
@@ -219,8 +184,6 @@ adjust_openclash_config
 
 chmod 755 ./etc/init.d/*
 
-sed -e "s/option wan_mode 'false'/option wan_mode 'true'/" -i ./etc/config/dockerman 2>/dev/null
-mv -f ./etc/rc.d/S??dockerd ./etc/rc.d/S99dockerd 2>/dev/null
 rm -f ./etc/rc.d/S80nginx 2>/dev/null
 
 create_fstab_config
@@ -236,6 +199,25 @@ patch_admin_status_index_html
 
 write_release_info
 write_banner
+
+# First run, 第一次启动时自动创建新分区及格式化
+if [ -f "$FIRSTRUN_SCRIPT" ];then
+	chmod 755 "$FIRSTRUN_SCRIPT"
+ 	cp "$FIRSTRUN_SCRIPT" ./usr/bin/ 
+	mv ./etc/rc.local ./etc/rc.local.orig
+	cat > ./etc/part_size <<EOF
+${SKIP_MB}	${BOOT_MB}	${ROOTFS_MB}
+EOF
+
+	cat > "./etc/rc.local" <<EOF
+# Put your custom commands here that should be executed once
+# the system init finished. By default this file does nothing.
+/usr/bin/pwm-fan.pl &
+/usr/bin/mk_newpart.sh 1>/dev/null 2>&1
+exit 0
+EOF
+fi
+
 # 创建 /etc 初始快照
 echo "创建初始快照: /etc -> /.snapshots/etc-000"
 cd $TGT_ROOT && \
