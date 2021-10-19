@@ -170,14 +170,6 @@ adjust_nfs_config "mmcblk2p4"
 adjust_openssh_config
 adjust_openclash_config
 use_xrayplug_replace_v2rayplug
-
-# for collectd
-#[ -f ./etc/ppp/options-opkg ] && mv ./etc/ppp/options-opkg ./etc/ppp/options
-
-chmod 755 ./etc/init.d/*
-
-rm -f ./etc/rc.d/S80nginx 2>/dev/null
-
 create_fstab_config
 
 cat > ./etc/modprobe.d/99-local.conf <<EOF
@@ -207,9 +199,6 @@ else
         mv -f ./etc/modules.d/brcm*  ./etc/modules.d.remove/ 2>/dev/null
     fi
 fi
-
-# 默认禁用sfe
-[ -f ./etc/config/sfe ] && sed -e 's/option enabled '1'/option enabled '0'/' -i ./etc/config/sfe
 
 [ -f ./etc/modules.d/usb-net-asix-ax88179 ] || echo "ax88179_178a" > ./etc/modules.d/usb-net-asix-ax88179
 # +版内核，优先启用v2驱动, +o内核则启用v1驱动
