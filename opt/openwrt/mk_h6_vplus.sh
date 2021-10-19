@@ -40,7 +40,7 @@ GETCPU_SCRIPT="${PWD}/files/getcpu"
 KMOD="${PWD}/files/kmod"
 KMOD_BLACKLIST="${PWD}/files/vplus/kmod_blacklist"
 
-FIRSTRUN_SCRIPT="${PWD}/files/mk_newpart.sh"
+FIRSTRUN_SCRIPT="${PWD}/files/first_run.sh"
 BOOT_CMD="${PWD}/files/vplus/boot/boot.cmd"
 BOOT_SCR="${PWD}/files/vplus/boot/boot.scr"
 
@@ -188,23 +188,7 @@ fi
 
 write_release_info
 write_banner
-
-# First run, 第一次启动时自动创建新分区及格式化
-if [ -f "$FIRSTRUN_SCRIPT" ];then
-	chmod 755 "$FIRSTRUN_SCRIPT"
- 	cp "$FIRSTRUN_SCRIPT" ./usr/bin/ 
-	mv ./etc/rc.local ./etc/rc.local.orig
-	cat > ./etc/part_size <<EOF
-${SKIP_MB}	${BOOT_MB}	${ROOTFS_MB}
-EOF
-
-	cat > "./etc/rc.local" <<EOF
-# Put your custom commands here that should be executed once
-# the system init finished. By default this file does nothing.
-/usr/bin/mk_newpart.sh 1>/dev/null 2>&1
-exit 0
-EOF
-fi
+config_first_run
 
 # 创建 /etc 初始快照
 echo "创建初始快照: /etc -> /.snapshots/etc-000"
