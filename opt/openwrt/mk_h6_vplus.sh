@@ -139,28 +139,9 @@ echo
 
 echo "modify root ... "
 # modify root
+cd $TGT_ROOT
 copy_supplement_files
 extract_glibc_programs
-
-cd $TGT_ROOT
-if [ -f etc/config/cpufreq ];then
-    sed -e "s/ondemand/schedutil/" -i etc/config/cpufreq
-fi
-
-mv -f ./etc/modules.d/brcm* ./etc/modules.d.remove/ 2>/dev/null
-mod_blacklist=$(cat ${KMOD_BLACKLIST})
-for mod in $mod_blacklist ;do
-	mv -f ./etc/modules.d/${mod} ./etc/modules.d.remove/ 2>/dev/null
-done
-[ -f ./etc/modules.d/usb-net-asix-ax88179 ] || echo "ax88179_178a" > ./etc/modules.d/usb-net-asix-ax88179
-if echo $KERNEL_VERSION | grep -E '*\+$' ;then
-	echo "r8152" > ./etc/modules.d/usb-net-rtl8152
-else
-	echo "r8152" > ./etc/modules.d/usb-net-rtl8152
-fi
-echo "r8188eu" > ./etc/modules.d/rtl8188eu
-echo "sunxi_wdt" > ./etc/modules.d/watchdog
-
 adjust_docker_config
 adjust_openssl_config
 adjust_qbittorrent_config
@@ -174,18 +155,8 @@ create_fstab_config
 adjust_turboacc_config
 adjust_ntfs_config
 patch_admin_status_index_html
-
-if [ -f ${UBOOT_BIN} ];then
-    mkdir -p $TGT_ROOT/lib/u-boot && cp -v ${UBOOT_BIN} $TGT_ROOT/lib/u-boot
-    cp -v ${WRITE_UBOOT_SCRIPT} ${TGT_ROOT}/lib/u-boot
-    echo "写入 bootloader ..."
-    echo "dd if=${UBOOT_BIN} of=${TGT_DEV} bs=1024 seek=8"
-    dd if="${UBOOT_BIN}" of="${TGT_DEV}" bs=1024 seek=8
-    sync
-    echo "写入完毕"
-    echo
-fi
-
+adjust_kernel_env
+copy_uboot_to_fs
 write_release_info
 write_banner
 config_first_run
@@ -195,6 +166,8 @@ echo "创建初始快照: /etc -> /.snapshots/etc-000"
 cd $TGT_ROOT && \
 mkdir -p .snapshots && \
 btrfs subvolume snapshot -r etc .snapshots/etc-000
+
+write_uboot_to_disk
 
 # clean temp_dir
 cd $TEMP_DIR

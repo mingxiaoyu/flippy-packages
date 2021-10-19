@@ -109,12 +109,6 @@ ROOTFS_MB=720
 SIZE=$((SKIP_MB + BOOT_MB + ROOTFS_MB))
 create_image "$TGT_IMG" "$SIZE"
 create_partition "$TGT_DEV" "msdos" "$SKIP_MB" "$BOOT_MB" "ext4" "0" "-1" "btrfs"
-
-# write bootloader
-dd if=${BOOTLOADER_IMG} of=${TGT_DEV} bs=1 count=442 conv=fsync
-dd if=${BOOTLOADER_IMG} of=${TGT_DEV} bs=512 skip=1 seek=1 conv=fsync
-sync
-
 make_filesystem "$TGT_DEV" "B" "ext4" "EMMC_BOOT" "R" "btrfs" "EMMC_ROOTFS1"
 mount_fs "${TGT_DEV}p1" "${TGT_BOOT}" "ext4"
 mount_fs "${TGT_DEV}p2" "${TGT_ROOT}" "btrfs" "compress=zstd"
@@ -142,31 +136,9 @@ EOF
 
 echo "modify root ... "
 # modify root
+cd $TGT_ROOT
 copy_supplement_files
 extract_glibc_programs
-
-cd $TGT_ROOT
-
-if [ -f etc/config/cpufreq ];then
-    sed -e "s/ondemand/schedutil/" -i etc/config/cpufreq
-fi
-
-mv -f ./etc/modules.d/brcm* ./etc/modules.d.remove/ 2>/dev/null
-mod_blacklist=$(cat ${KMOD_BLACKLIST})
-for mod in $mod_blacklist ;do
-	mv -f ./etc/modules.d/${mod} ./etc/modules.d.remove/ 2>/dev/null
-done
-[ -f ./etc/modules.d/usb-net-asix-ax88179 ] || echo "ax88179_178a" > ./etc/modules.d/usb-net-asix-ax88179
-# +版内核，优先启用v2驱动, +o内核则启用v1驱动
-if echo $KERNEL_VERSION | grep -E '*\+$' ;then
-	echo "r8152" > ./etc/modules.d/usb-net-rtl8152
-else
-	echo "r8152" > ./etc/modules.d/usb-net-rtl8152
-fi
-[ -f ./etc/config/shairport-sync ] && [ -f ${SND_MOD} ] && cp ${SND_MOD} ./etc/modules.d/
-echo "r8188eu" > ./etc/modules.d/rtl8188eu
-echo "dw_wdt" > ./etc/modules.d/watchdog
-
 adjust_docker_config
 adjust_openssl_config
 adjust_qbittorrent_config
@@ -180,6 +152,8 @@ create_fstab_config
 adjust_turboacc_config
 adjust_ntfs_config
 patch_admin_status_index_html
+adjust_kernel_env
+copy_uboot_to_fs
 write_release_info
 write_banner
 config_first_run
@@ -189,6 +163,8 @@ echo "创建初始快照: /etc -> /.snapshots/etc-000"
 cd $TGT_ROOT && \
 mkdir -p .snapshots && \
 btrfs subvolume snapshot -r etc .snapshots/etc-000
+
+write_uboot_to_disk
 
 # clean temp_dir
 cd $TEMP_DIR
