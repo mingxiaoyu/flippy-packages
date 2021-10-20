@@ -117,8 +117,8 @@ FIRSTRUN_SCRIPT="${PWD}/files/first_run.sh"
 check_depends
 
 SKIP_MB=4
-BOOT_MB=256
-ROOTFS_MB=640
+BOOT_MB=160
+ROOTFS_MB=736
 SIZE=$((SKIP_MB + BOOT_MB + ROOTFS_MB))
 create_image "$TGT_IMG" "$SIZE"
 create_partition "$TGT_DEV" "msdos" "$SKIP_MB" "$BOOT_MB" "fat32" "0" "-1" "btrfs"
@@ -139,11 +139,17 @@ INITRD=/uInitrd
 
 # 下列 dtb，用到哪个就把哪个的#删除，其它的则加上 # 在行首
 
-# 用于 Belink GT-King
+# 用于 Belink GT-King (1896Mhz/1800Mhz)
 #FDT=/dtb/amlogic/meson-g12b-gtking.dtb
 
-# 用于 Belink GT-King Pro
+# 用于 Belink GT-King (2016Mhz/2016Mhz)
+#FDT=/dtb/amlogic/meson-g12b-gtking-oc.dtb
+
+# 用于 Belink GT-King Pro ( 1800Mhz/2208Mhz)
 FDT=/dtb/amlogic/meson-g12b-gtking-pro.dtb
+
+# 用于 Belink GT-King Pro ( 2016Mhz/2208Mhz)
+FDT=/dtb/amlogic/meson-g12b-gtking-pro-oc.dtb
 
 APPEND=root=UUID=${ROOTFS_UUID} rootfstype=btrfs rootflags=compress=zstd console=ttyAML0,115200n8 console=tty0 no_console_suspend consoleblank=0 fsck.fix=yes fsck.repair=yes net.ifnames=0 cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory swapaccount=1
 EOF
