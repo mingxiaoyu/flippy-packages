@@ -91,7 +91,7 @@ WIRELESS_CONFIG="${PWD}/files/s905d/wireless"
 
 # 20210307 add
 SS_LIB="${PWD}/files/ss-glibc/lib-glibc.tar.xz"
-SS_BIN="${PWD}/files/ss-glibc/ss-bin-glibc.tar.xz"
+SS_BIN="${PWD}/files/ss-glibc/armv8a_crypto/ss-bin-glibc.tar.xz"
 JQ="${PWD}/files/jq"
 
 # 20210330 add
@@ -116,6 +116,9 @@ OPENWRT_BACKUP="${PWD}/files/openwrt-backup"
 
 # 20211019 add
 FIRSTRUN_SCRIPT="${PWD}/files/first_run.sh"
+
+# 20211020 add
+BTLD_BIN="${PWD}/files/s905d/u-boot-2015-phicomm-n1.bin"
 ###########################################################################
 
 check_depends
