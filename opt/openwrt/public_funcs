@@ -1325,6 +1325,8 @@ function adjust_kernel_env() {
                          echo "brcmfmac" > ./etc/modules.d/brcmfmac
                          echo "brcmutil" > ./etc/modules.d/brcmutil
                          echo "已启用 brcmfmac 驱动，如果机内有 broadcom 模块的话，就可以开启wifi功能" 
+		         echo "88x2cs" > ./etc/modules.d/rtl88x2cs
+		         echo "已启用 rtl8822cs 驱动, 如果机内有 rtl8822cs 模块的话，就可以开启wifi功能"
                     fi
                 else
                     # 低版本内核下，如果ENABLE_WIFI_K504 = 0 则禁用wifi
@@ -1335,6 +1337,8 @@ function adjust_kernel_env() {
                         echo "brcmfmac" > ./etc/modules.d/brcmfmac
                         echo "brcmutil" > ./etc/modules.d/brcmutil
                         echo "已启用 brcmfmac 驱动，如果机内有 broadcom 模块的话，就可以开启wifi功能" 
+		        echo "88x2cs" > ./etc/modules.d/rtl88x2cs
+		        echo "已启用 rtl8822cs 驱动, 如果机内有 rtl8822cs 模块的话，就可以开启wifi功能"
                     fi
                 fi
                 ;;

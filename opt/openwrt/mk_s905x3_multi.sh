@@ -11,6 +11,8 @@ PLATFORM=amlogic
 SOC=s905x3
 BOARD=multi
 
+ENABLE_WIFI_K510=1
+
 SUBVER=$1
 
 # Kernel image sources
